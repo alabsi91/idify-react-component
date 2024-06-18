@@ -51,7 +51,7 @@ export function CreateFromFC<const IDs extends string, R extends object, P exten
     getParentName: () => string | null;
   } & R;
 
-  class ClassComponent<T extends string = IDs> extends React.Component<{ id?: T } & P> {
+  class ClassComponent<T extends string = IDs, G extends object = P> extends React.Component<{ id?: T } & G> {
     static refs = new Map<string, ComponentRefType>();
 
     state = { isMounted: true, update: 0 };
