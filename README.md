@@ -95,6 +95,33 @@ import { CreateFromRC } from 'idify-react-component';
 const MyComponent = CreateFromRC(ClassComponent);
 ```
 
+> [!WARNING]
+> Components with generic types cannot be inferred by TypeScript. To resolve this, use `setComponentType` as an alternative.
+
+```tsx
+type IDs = 'componentId' | 'componentId2'; // or just a string type
+
+// 👇 Add the id type to your props
+type PropsType<T> = { id?: IDs; myProp: T };
+
+type RefType = { click: () => void };
+
+function MyComponentFC<T>(props: PropsType<T>, ref: ForwardedRef<RefType>) {
+  const onClick = () => {
+    // Perform some action
+  };
+
+  // ref object you will get access to later
+  useImperativeHandle(ref, () => ({ click: onClick }));
+
+  return <div></div>;
+}
+
+const MyComponent = CreateFromFC(MyComponentFC).setComponentType<typeof MyComponentFC, IDs>();
+
+export default MyComponent;
+```
+
 ## API
 
 ### `CreateFromFC`

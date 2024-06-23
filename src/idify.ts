@@ -38,8 +38,6 @@ export function CreateFromFC<const IDs extends string, R extends object, P exten
 ) {
   const ForwardedRefComponent = React.forwardRef<R, P>(RC);
 
-  type IdRefObjectType<T extends string> = { [key in `${typeof PREFIX}${T}`]: ComponentRefType | null };
-
   type ComponentRefType = {
     /** Mount the component. Mounting a mounted component has no effect. */
     mount: () => void;
@@ -50,6 +48,8 @@ export function CreateFromFC<const IDs extends string, R extends object, P exten
     /** Get the name of the parent component, could be useful for debugging. */
     getParentName: () => string | null;
   } & R;
+
+  type IdRefObjectType<T extends string> = { [key in `${typeof PREFIX}${T}`]: ComponentRefType | null };
 
   class ClassComponent<T extends string = IDs> extends React.Component<{ id?: T } & P> {
     static refs = new Map<string, ComponentRefType>();
@@ -100,8 +100,8 @@ export function CreateFromFC<const IDs extends string, R extends object, P exten
   }
 
   const proxyHandler = {
-    get(target: typeof ClassComponent, prop: keyof typeof ClassComponent | 'setIdType') {
-      if (prop === 'setIdType') return () => ProxyComponent;
+    get(target: typeof ClassComponent, prop: keyof typeof ClassComponent | 'setIdType' | 'setComponentType') {
+      if (prop === 'setIdType' || prop === 'setComponentType') return () => ProxyComponent;
 
       if (!prop.startsWith(PREFIX)) return target[prop];
 
@@ -131,6 +131,7 @@ export function CreateFromFC<const IDs extends string, R extends object, P exten
     IdRefObjectType<IDs> & {
       /** Set the ID type, only for typescript autocomplete purpose. */
       setIdType: <T extends IDs>() => typeof ClassComponent<T> & IdRefObjectType<T>;
+      setComponentType: <F, T extends string = IDs>() => F & IdRefObjectType<T>;
     };
 
   return ProxyComponent as ReturnType;
