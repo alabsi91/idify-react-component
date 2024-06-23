@@ -131,6 +131,7 @@ export function CreateFromFC<const IDs extends string, R extends object, P exten
     IdRefObjectType<IDs> & {
       /** Set the ID type, only for typescript autocomplete purpose. */
       setIdType: <T extends IDs>() => typeof ClassComponent<T> & IdRefObjectType<T>;
+      /** Set the component type when the component is using generics in its props, only for typescript. */
       setComponentType: <F, T extends string = IDs>() => F & IdRefObjectType<T>;
     };
 
