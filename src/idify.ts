@@ -124,7 +124,7 @@ export function CreateFromFC<const IDs extends string, R extends object, P exten
     },
   };
 
-  type ClassComponentT = typeof ClassComponent;
+  type ClassComponentT = typeof ClassComponent<IDs>;
   const ProxyComponent = new Proxy<ClassComponentT>(ClassComponent, proxyHandler);
 
   type ReturnType = ClassComponentT &

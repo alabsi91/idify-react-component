@@ -66,7 +66,6 @@ function App() {
 
 ```ts
 const IDS = ['componentId', 'componentId2'] as const;
-const MyComponent = CreateFromFC(MyComponentFC, IDS);
 
 // OR
 
@@ -74,6 +73,13 @@ const IDS = {
   forHomePage: 'componentId',
   forDetailPage: 'componentId2',
 } as const;
+
+// OR
+
+enum IDS {
+  forHomePage = 'componentId',
+  forDetailPage = 'componentId2',
+}
 
 const MyComponent = CreateFromFC(MyComponentFC, IDS);
 ```
