@@ -109,21 +109,7 @@ export function CreateFromFC<const IDs extends string, R extends object, P exten
         const ref = ClassComponent.refs.get(id);
 
         // ref not found default to original or null
-        if (!ref) return target[prop] ?? null;
-
-        // no ids object is passed, no need for checks
-        if (!ids) return ref;
-
-        // the user passed an ids object
-        if (Array.isArray(ids) && !ids.includes(id)) {
-          console.error(`[Error] The ID "${id}" is not found in provided IDs array!`);
-          return;
-        }
-
-        if (typeof ids === 'object' && !Object.values(ids).includes(id)) {
-          console.error(`[Error] The ID "${id}" is not found in provided IDs object!`);
-          return;
-        }
+        if (!ref) return target[prop];
 
         return ref;
       }
