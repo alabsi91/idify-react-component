@@ -16,7 +16,12 @@
     "component",
     "id"
   ],
-  "author": "Ahmed ALABSI",
+  "homepage": "https://github.com/alabsi91/idify-react-component#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alabsi91/idify-react-component.git"
+  },
+  "author": "Ahmed ALABSI <alabsi91@gmail.com> (https://github.com/alabsi91)",
   "license": "MIT",
   "files": [
     "lib/**/*",
