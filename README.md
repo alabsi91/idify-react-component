@@ -4,7 +4,7 @@ This library provides a utility to create class components from functional compo
 
 ## Installation
 
-```bash
+```cmd
 npm install idify-react-component
 ```
 
@@ -12,7 +12,7 @@ npm install idify-react-component
 
 ### Creating a Component from a Functional Component
 
-#### First create your component:
+1. #### First create your component:
 
 ```tsx
 // File: ./MyComponent.tsx
@@ -27,7 +27,8 @@ function MyComponentFC(props: PropsType, ref: ForwardedRef<RefType>) {
     // Do something
   };
 
-  useImperativeHandle(ref, () => ({ click: onClick })); // ref object you will get access to later
+  // ref object you will get access to later
+  useImperativeHandle(ref, () => ({ click: onClick }));
 
   return <div></div>;
 }
@@ -36,7 +37,7 @@ const MyComponent = CreateFromFC(MyComponentFC);
 export default MyComponent;
 ```
 
-#### Then use it:
+2. #### Then use it:
 
 ```tsx
 // File: ./App.tsx
@@ -82,6 +83,12 @@ enum IDS {
 }
 
 const MyComponent = CreateFromFC(MyComponentFC, IDS);
+```
+
+- Change the the default id prefix `$` into something else or to none:
+
+```ts
+const MyComponent = CreateFromFC(MyComponentFC, IDS, '');
 ```
 
 - If you only need TypeScript type checking per component, you can use the `setIdType` method. This method doesn't change any functionality but adds types to the component:
@@ -143,6 +150,7 @@ A class component with the following additional properties:
 
 - `refs` (Map): A map of component IDs to their ref objects.
 - `setIdType` (function): Sets the ID type for TypeScript autocomplete.
+- `setComponentType` (function): Sets the type when using a component with generics.
 
 ### `CreateFromRC`
 
@@ -150,6 +158,7 @@ A class component with the following additional properties:
 
 - `RC` (ComponentClass): A React class component.
 - `ids` (optional, readonly array of strings or object with string values): An array of strings or an object with string values representing IDs.
+- `prefix` (optional, string): default `$`.
 
 #### Returns
 

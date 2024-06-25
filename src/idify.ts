@@ -2,8 +2,6 @@ import React from 'react';
 
 import type { ComponentClass, ComponentProps, ForwardRefRenderFunction, ForwardedRef, PropsWithoutRef } from 'react';
 
-const PREFIX = '$';
-
 /**
  * - Takes a functional component that takes parameters, props, and a ref, and forwards the ref parameter.
  * - Using `forwardRef` in your component is not necessary.
@@ -32,9 +30,10 @@ const PREFIX = '$';
  * @param ids - An array of strings or an object with string values representing IDs.
  * @returns - A class component.
  */
-export function CreateFromFC<const IDs extends string, R extends object, P extends object>(
+export function CreateFromFC<const IDs extends string, R extends object, P extends object, const PREFIX extends string = '$'>(
   RC: ForwardRefRenderFunction<R, P>,
   ids?: readonly IDs[] | { [K: PropertyKey]: IDs },
+  prefix: PREFIX = '$' as PREFIX,
 ) {
   const ForwardedRefComponent = React.forwardRef<R, P>(RC);
 
@@ -49,7 +48,7 @@ export function CreateFromFC<const IDs extends string, R extends object, P exten
     getParentName: () => string | null;
   } & R;
 
-  type IdRefObjectType<T extends string> = { [key in `${typeof PREFIX}${T}`]: ComponentRefType | null };
+  type IdRefObjectType<T extends string> = { [key in `${PREFIX}${T}`]: ComponentRefType | null };
 
   class ClassComponent<T extends string = IDs> extends React.Component<{ id?: T } & P> {
     static refs = new Map<string, ComponentRefType>();
@@ -103,9 +102,35 @@ export function CreateFromFC<const IDs extends string, R extends object, P exten
     get(target: typeof ClassComponent, prop: keyof typeof ClassComponent | 'setIdType' | 'setComponentType') {
       if (prop === 'setIdType' || prop === 'setComponentType') return () => ProxyComponent;
 
-      if (!prop.startsWith(PREFIX)) return target[prop];
+      // without a prefix
+      if (!prefix) {
+        // try to get the ref
+        const id = prop as IDs;
+        const ref = ClassComponent.refs.get(id);
 
-      const id = prop.slice(1) as IDs;
+        // ref not found default to original or null
+        if (!ref) return target[prop] ?? null;
+
+        // no ids object is passed, no need for checks
+        if (!ids) return ref;
+
+        // the user passed an ids object
+        if (Array.isArray(ids) && !ids.includes(id)) {
+          console.error(`[Error] The ID "${id}" is not found in provided IDs array!`);
+          return;
+        }
+
+        if (typeof ids === 'object' && !Object.values(ids).includes(id)) {
+          console.error(`[Error] The ID "${id}" is not found in provided IDs object!`);
+          return;
+        }
+
+        return ref;
+      }
+
+      if (!prop.startsWith(prefix)) return target[prop];
+
+      const id = prop.slice(prefix.length) as IDs;
 
       if (Array.isArray(ids) && !ids.includes(id)) {
         console.error(`[Error] The ID "${id}" is not found in provided IDs array!`);
@@ -132,7 +157,7 @@ export function CreateFromFC<const IDs extends string, R extends object, P exten
       /** Set the ID type, only for typescript autocomplete purpose. */
       setIdType: <T extends IDs>() => typeof ClassComponent<T> & IdRefObjectType<T>;
       /** Set the component type when the component is using generics in its props, only for typescript. */
-      setComponentType: <F, T extends string = IDs>() => F & IdRefObjectType<T>;
+      setComponentType: <F, T extends string = IDs>() => F & IdRefObjectType<T> & { refs: Map<T, ComponentRefType> };
     };
 
   return ProxyComponent as ReturnType;
