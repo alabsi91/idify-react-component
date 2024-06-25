@@ -1,6 +1,6 @@
 {
   "name": "idify-react-component",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Get a ref to a react component by ID",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
