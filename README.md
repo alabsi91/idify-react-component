@@ -109,7 +109,7 @@ const MyComponent = CreateFromRC(ClassComponent);
 ```
 
 > [!WARNING]
-> Components with generic types cannot be inferred by TypeScript. To resolve this, use `setComponentType` as an alternative.
+> Components with generic types cannot be inferred by TypeScript correctly. To resolve this, add `id` to the props type.
 
 ```tsx
 type IDs = 'componentId' | 'componentId2'; // or just a string type
@@ -130,7 +130,7 @@ function MyComponentFC<T>(props: PropsType<T>, ref: ForwardedRef<RefType>) {
   return <div></div>;
 }
 
-const MyComponent = CreateFromFC(MyComponentFC).setComponentType<typeof MyComponentFC, IDs>();
+const MyComponent = CreateFromFC(MyComponentFC);
 
 export default MyComponent;
 ```
@@ -150,7 +150,6 @@ A class component with the following additional properties:
 
 - `refs` (Map): A map of component IDs to their ref objects.
 - `setIdType` (function): Sets the ID type for TypeScript autocomplete.
-- `setComponentType` (function): Sets the type when using a component with generics.
 
 ### `CreateFromRC`
 

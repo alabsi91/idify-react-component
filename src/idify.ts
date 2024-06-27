@@ -1,6 +1,6 @@
 import React from 'react';
 
-import type { ComponentClass, ComponentProps, ForwardRefRenderFunction, ForwardedRef, PropsWithoutRef } from 'react';
+import type { ComponentClass, ComponentProps, ForwardedRef, PropsWithoutRef, ReactNode } from 'react';
 
 /**
  * - Takes a functional component that takes parameters, props, and a ref, and forwards the ref parameter.
@@ -26,16 +26,29 @@ import type { ComponentClass, ComponentProps, ForwardRefRenderFunction, Forwarde
  *     return <MyComponent id='componentId' />;
  *   }
  *
- * @param RC - A React functional component.
+ * @param FC - A React functional component.
  * @param ids - An array of strings or an object with string values representing IDs.
  * @returns - A class component.
  */
-export function CreateFromFC<const IDs extends string, R extends object, P extends object, const PREFIX extends string = '$'>(
-  RC: ForwardRefRenderFunction<R, P>,
-  ids?: readonly IDs[] | { [K: PropertyKey]: IDs },
+
+export function CreateFromFC<
+  P extends object,
+  F extends object,
+  R extends ReactNode,
+  TF,
+  const I extends string,
+  const PREFIX extends string = '$',
+>(
+  FC: ((props: P, ref: ForwardedRef<F>) => R) | TF,
+  ids?: readonly I[] | { [K: PropertyKey]: I },
   prefix: PREFIX = '$' as PREFIX,
 ) {
-  const ForwardedRefComponent = React.forwardRef<R, P>(RC);
+  // get the ids type from the props or from the ids param
+  type IDs = P extends { id?: infer T } ? (T extends string ? T : I) : I;
+
+  type ComponentFCWithID<T extends string = IDs> = (props: P & { id?: T }, ref: ForwardedRef<F>) => R;
+
+  const ForwardedRefComponent = React.forwardRef<F, P>(FC as ComponentFCWithID);
 
   type ComponentRefType = {
     /** Mount the component. Mounting a mounted component has no effect. */
@@ -46,11 +59,11 @@ export function CreateFromFC<const IDs extends string, R extends object, P exten
     forceRerender: () => void;
     /** Get the name of the parent component, could be useful for debugging. */
     getParentName: () => string | null;
-  } & R;
+  } & F;
 
   type IdRefObjectType<T extends string> = { [key in `${PREFIX}${T}`]: ComponentRefType | null };
 
-  class ClassComponent<T extends string = IDs> extends React.Component<{ id?: T } & P> {
+  class ClassComponent extends React.Component<{ id?: IDs } & P> {
     static refs = new Map<string, ComponentRefType>();
 
     state = { isMounted: true, update: 0 };
@@ -59,7 +72,7 @@ export function CreateFromFC<const IDs extends string, R extends object, P exten
       if (this.props.id) ClassComponent.refs.delete(this.props.id);
     }
 
-    #registerRef = (node: R | null) => {
+    #registerRef = (node: F | null) => {
       if (!node || !this.props.id) return;
 
       const getParentName = () => {
@@ -99,8 +112,8 @@ export function CreateFromFC<const IDs extends string, R extends object, P exten
   }
 
   const proxyHandler = {
-    get(target: typeof ClassComponent, prop: keyof typeof ClassComponent | 'setIdType' | 'setComponentType') {
-      if (prop === 'setIdType' || prop === 'setComponentType') return () => ProxyComponent;
+    get(target: typeof ClassComponent, prop: keyof typeof ClassComponent | 'setIdType') {
+      if (prop === 'setIdType') return () => ProxyComponent;
 
       // without a prefix
       if (!prefix) {
@@ -135,18 +148,17 @@ export function CreateFromFC<const IDs extends string, R extends object, P exten
     },
   };
 
-  type ClassComponentT = typeof ClassComponent<IDs>;
-  const ProxyComponent = new Proxy<ClassComponentT>(ClassComponent, proxyHandler);
+  const ProxyComponent = new Proxy<typeof ClassComponent>(ClassComponent, proxyHandler);
 
-  type ReturnType = ClassComponentT &
-    IdRefObjectType<IDs> & {
-      /** Set the ID type, only for typescript autocomplete purpose. */
-      setIdType: <T extends IDs>() => typeof ClassComponent<T> & IdRefObjectType<T>;
-      /** Set the component type when the component is using generics in its props, only for typescript. */
-      setComponentType: <F, T extends string = IDs>() => F & IdRefObjectType<T> & { refs: Map<T, ComponentRefType> };
-    };
+  type ReturnCP<T extends string = IDs> = (P extends { id?: string } ? TF : ComponentFCWithID<T>) &
+    IdRefObjectType<T> & { refs: Map<T, ComponentRefType> };
 
-  return ProxyComponent as ReturnType;
+  type CreateFromFCReturnType = ReturnCP & {
+    /** Set the ID type, only for typescript autocomplete purpose. */
+    setIdType: <T extends IDs>() => ReturnCP<T>;
+  };
+
+  return ProxyComponent as unknown as CreateFromFCReturnType;
 }
 
 /** Create from a react class component */
