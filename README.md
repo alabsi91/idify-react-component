@@ -63,7 +63,7 @@ function App() {
 
 - Several additional methods will automatically be added to the component reference object: `mount`, `unMount`, `forceRerender`, and `getParentName`.
 
-- You can optionally restrict the IDs that can be used and get additional TypeScript types by passing a second parameter, `ids`:
+- You can optionally restrict the IDs that can be used and get additional TypeScript types by passing the option `ids`:
 
 ```ts
 const IDS = ['componentId', 'componentId2'] as const;
@@ -82,13 +82,23 @@ enum IDS {
   forDetailPage = 'componentId2',
 }
 
-const MyComponent = CreateFromFC(MyComponentFC, IDS);
+const MyComponent = CreateFromFC(MyComponentFC, { ids: IDS });
 ```
 
-- Change the the default id prefix `$` into something else or to none:
+- Change the the default id prefix `$` into something else:
 
 ```ts
-const MyComponent = CreateFromFC(MyComponentFC, IDS, '');
+const MyComponent = CreateFromFC(MyComponentFC, { prefix: '' });
+MyComponent.$componentId; // default prefix
+MyComponent.componentId; // without prefix
+```
+
+- Change the `id` prop name to something else:
+
+```tsx
+const MyComponent = CreateFromFC(MyComponentFC, { idPropName: 'refId' });
+
+<MyComponent refId='componentId' />;
 ```
 
 - If you only need TypeScript type checking per component, you can use the `setIdType` method. This method doesn't change any functionality but adds types to the component:
@@ -141,8 +151,14 @@ export default MyComponent;
 
 #### Parameters
 
-- `RC` (ForwardRefRenderFunction): A React functional component.
-- `ids` (optional, readonly array of strings or object with string values): An array of strings or an object with string values representing IDs.
+- `functionComponent` (ForwardRefRenderFunction): A React functional component.
+- `options`
+
+| option       | type                                                      |
+| ------------ | --------------------------------------------------------- |
+| `ids`        | `ids?: readonly string[] \| { [K: PropertyKey]: string }` |
+| `prefix`     | `prefix?: string`                                         |
+| `idPropName` | `idPropName?: string`                                     |
 
 #### Returns
 
@@ -155,9 +171,14 @@ A class component with the following additional properties:
 
 #### Parameters
 
-- `RC` (ComponentClass): A React class component.
-- `ids` (optional, readonly array of strings or object with string values): An array of strings or an object with string values representing IDs.
-- `prefix` (optional, string): default `$`.
+- `ReactClassComponent` (ComponentClass): A React class component.
+- `options`
+
+| option       | type                                                      |
+| ------------ | --------------------------------------------------------- |
+| `ids`        | `ids?: readonly string[] \| { [K: PropertyKey]: string }` |
+| `prefix`     | `prefix?: string`                                         |
+| `idPropName` | `idPropName?: string`                                     |
 
 #### Returns
 
